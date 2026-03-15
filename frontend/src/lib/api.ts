@@ -41,15 +41,51 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// ── Status-code → friendly message ───────────────────────────────────────────
+const STATUS_MESSAGES: Record<number, string> = {
+  400: "Invalid request. Please check your input.",
+  401: "Incorrect email or password.",
+  403: "You are not authorized to perform this action.",
+  404: "The requested resource was not found.",
+  429: "Too many requests. Please wait a moment and try again.",
+  500: "Server error. Please try again later.",
+  502: "Service unavailable. Please try again later.",
+  503: "Service temporarily unavailable. Please try again later.",
+};
+
 function extractErrorMessage(err: unknown): string {
   if (err instanceof AxiosError) {
-    const detail = err.response?.data?.detail;
-    if (typeof detail === "string") return detail;
-    if (Array.isArray(detail)) return detail.map((d: { msg?: string }) => d.msg).join(", ");
-    return err.message;
+    // No response at all → network / connectivity problem
+    if (!err.response) {
+      return "Check your internet connection.";
+    }
+
+    const { status, data } = err.response;
+
+    // New backend envelope: { success: false, message: "..." }
+    if (data?.message && typeof data.message === "string") {
+      return data.message;
+    }
+
+    // Legacy backend envelope: { error: { message: "..." } }
+    if (data?.error?.message && typeof data.error.message === "string") {
+      return data.error.message;
+    }
+
+    // FastAPI default: { detail: "..." | [...] }
+    if (data?.detail) {
+      if (typeof data.detail === "string") return data.detail;
+      if (Array.isArray(data.detail)) {
+        return data.detail.map((d: { msg?: string }) => d.msg).join(", ");
+      }
+    }
+
+    // Fall back to status-code table
+    return STATUS_MESSAGES[status] ?? "Something went wrong. Please try again.";
   }
+
   if (err instanceof Error) return err.message;
-  return "An unexpected error occurred";
+  return "Something went wrong. Please try again.";
 }
 
 // ── Flight endpoints ──────────────────────────────────────────────────────────

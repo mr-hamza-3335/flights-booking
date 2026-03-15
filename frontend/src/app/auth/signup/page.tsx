@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Plane, Eye, EyeOff, Loader2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import toast from "react-hot-toast";
+import ErrorAlert from "@/components/ErrorAlert";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -77,11 +78,7 @@ export default function SignupPage() {
           {/* Form */}
           <form onSubmit={handleSubmit} className="px-8 py-8 space-y-4">
 
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm">
-                {error}
-              </div>
-            )}
+            <ErrorAlert message={error} onDismiss={() => setError("")} />
 
             <div className="grid grid-cols-2 gap-3">
               <div>
