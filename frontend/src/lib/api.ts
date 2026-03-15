@@ -41,6 +41,15 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// ── Response interceptor: normalise ALL errors before they reach callers ──────
+api.interceptors.response.use(
+  (response) => response,
+  (error: unknown) => {
+    const message = extractErrorMessage(error);
+    return Promise.reject(new Error(message));
+  }
+);
+
 // ── Status-code → friendly message ───────────────────────────────────────────
 const STATUS_MESSAGES: Record<number, string> = {
   400: "Invalid request. Please check your input.",
@@ -52,6 +61,10 @@ const STATUS_MESSAGES: Record<number, string> = {
   502: "Service unavailable. Please try again later.",
   503: "Service temporarily unavailable. Please try again later.",
 };
+
+export function mapHttpError(status: number): string {
+  return STATUS_MESSAGES[status] ?? "Something went wrong. Please try again.";
+}
 
 function extractErrorMessage(err: unknown): string {
   if (err instanceof AxiosError) {

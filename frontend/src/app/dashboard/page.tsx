@@ -14,6 +14,7 @@ import {
 } from "@/lib/api";
 import { BookingSummary, SavedFlightOut, AlertOut } from "@/types";
 import toast from "react-hot-toast";
+import ErrorAlert from "@/components/ErrorAlert";
 
 type Tab = "bookings" | "saved" | "alerts" | "profile";
 
@@ -54,6 +55,7 @@ export default function DashboardPage() {
   const [alerts, setAlerts] = useState<AlertOut[]>([]);
   const [loadingData, setLoadingData] = useState(false);
 
+  const [loadError, setLoadError] = useState("");
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [profileForm, setProfileForm] = useState({ first_name: "", last_name: "", phone: "" });
   const [savingProfile, setSavingProfile] = useState(false);
@@ -79,8 +81,8 @@ export default function DashboardPage() {
       setBookings(b);
       setSaved(s);
       setAlerts(a);
-    } catch {
-      // silently ignore
+    } catch (err: unknown) {
+      setLoadError(err instanceof Error ? err.message : "Failed to load your data. Please try again.");
     } finally {
       setLoadingData(false);
     }
@@ -194,6 +196,13 @@ export default function DashboardPage() {
 
         {/* Main content */}
         <div className="flex-1 min-w-0">
+
+          <ErrorAlert
+            message={loadError}
+            onRetry={() => { setLoadError(""); loadData(); }}
+            onDismiss={() => setLoadError("")}
+            className="mb-4"
+          />
 
           {/* ── Bookings ── */}
           {tab === "bookings" && (

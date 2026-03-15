@@ -17,6 +17,7 @@ import {
   getStopsLabel, getCabinLabel, generatePassengerLabel,
 } from "@/lib/utils";
 import toast from "react-hot-toast";
+import ErrorAlert from "@/components/ErrorAlert";
 
 interface BookingFormProps {
   flight:       FlightItinerary;
@@ -41,6 +42,7 @@ export default function BookingForm({ flight, searchParams, onSuccess }: Booking
   const [termsAccepted,   setTermsAccepted]   = useState(false);
   const [dataConsent,     setDataConsent]     = useState(false);
   const [submitting,      setSubmitting]      = useState(false);
+  const [submitError,     setSubmitError]     = useState("");
   const [errors,          setErrors]          = useState<Record<string, string>>({});
 
   function updatePassengerName(i: number, v: string) {
@@ -67,6 +69,7 @@ export default function BookingForm({ flight, searchParams, onSuccess }: Booking
     ev.preventDefault();
     if (!validate()) { toast.error("Please fill in all required fields."); return; }
 
+    setSubmitError("");
     setSubmitting(true);
     try {
       const payload: BookingRequestSubmit = {
@@ -95,7 +98,9 @@ export default function BookingForm({ flight, searchParams, onSuccess }: Booking
       const response = await submitBookingRequest(payload);
       onSuccess(response, payload);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Submission failed.");
+      const msg = err instanceof Error ? err.message : "Submission failed. Please try again.";
+      setSubmitError(msg);
+      toast.error(msg);
     } finally {
       setSubmitting(false);
     }
@@ -284,6 +289,7 @@ export default function BookingForm({ flight, searchParams, onSuccess }: Booking
       </div>
 
       {/* Submit */}
+      <ErrorAlert message={submitError} onDismiss={() => setSubmitError("")} className="mb-2" />
       <button type="submit" disabled={submitting}
         className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl text-base shadow-lg hover:shadow-xl transition-all disabled:opacity-70 flex items-center justify-center gap-2 active:scale-[0.99]">
         {submitting

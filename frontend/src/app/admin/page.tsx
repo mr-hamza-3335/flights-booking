@@ -15,6 +15,7 @@ import {
 } from "@/lib/api";
 import { AdminStats, AdminBooking, AdminUser, DailyStat } from "@/types";
 import toast from "react-hot-toast";
+import ErrorAlert from "@/components/ErrorAlert";
 
 // ── Status config ─────────────────────────────────────────────────────────────
 
@@ -415,6 +416,7 @@ export default function AdminPage() {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [deletingUserId, setDeletingUserId] = useState<number | null>(null);
 
+  const [loadError, setLoadError] = useState("");
   const [loadingData, setLoadingData] = useState(false);
   const [bookingSearch, setBookingSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -439,11 +441,14 @@ export default function AdminPage() {
       setStats(s);
       setRecentBookings(recent);
       setDailyStats(daily);
-    } catch { /* ignore */ }
+    } catch (err: unknown) {
+      setLoadError(err instanceof Error ? err.message : "Failed to load dashboard data. Please try again.");
+    }
   }, []);
 
   const loadBookings = useCallback(async () => {
     setLoadingData(true);
+    setLoadError("");
     try {
       const data = await getAdminBookings({
         q: bookingSearch || undefined,
@@ -451,6 +456,8 @@ export default function AdminPage() {
         limit: 100,
       });
       setBookings(data);
+    } catch (err: unknown) {
+      setLoadError(err instanceof Error ? err.message : "Failed to load bookings. Please try again.");
     } finally {
       setLoadingData(false);
     }
@@ -458,9 +465,12 @@ export default function AdminPage() {
 
   const loadUsers = useCallback(async () => {
     setLoadingData(true);
+    setLoadError("");
     try {
       const data = await getAdminUsers({ q: userSearch || undefined, limit: 100 });
       setUsers(data);
+    } catch (err: unknown) {
+      setLoadError(err instanceof Error ? err.message : "Failed to load users. Please try again.");
     } finally {
       setLoadingData(false);
     }
@@ -622,6 +632,20 @@ export default function AdminPage() {
 
       {/* ── Main content ── */}
       <main className="flex-1 bg-slate-50 overflow-auto pb-20 lg:pb-0">
+
+        <div className="max-w-5xl mx-auto px-6 pt-6">
+          <ErrorAlert
+            message={loadError}
+            onRetry={() => {
+              setLoadError("");
+              if (section === "dashboard") loadStats();
+              if (section === "requests") loadBookings();
+              if (section === "users") loadUsers();
+            }}
+            onDismiss={() => setLoadError("")}
+            className="mb-4"
+          />
+        </div>
 
         {/* ══ Dashboard ══ */}
         {section === "dashboard" && (

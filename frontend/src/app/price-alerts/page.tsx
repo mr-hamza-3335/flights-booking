@@ -8,6 +8,7 @@ import { useAuth } from "@/context/AuthContext";
 import { getAlerts, deleteAlert, createAlert } from "@/lib/api";
 import { AlertOut } from "@/types";
 import toast from "react-hot-toast";
+import ErrorAlert from "@/components/ErrorAlert";
 
 export default function PriceAlertsPage() {
   const router = useRouter();
@@ -15,6 +16,7 @@ export default function PriceAlertsPage() {
   const [alerts, setAlerts] = useState<AlertOut[]>([]);
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [loadError, setLoadError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({
     origin: "",
@@ -33,8 +35,8 @@ export default function PriceAlertsPage() {
     setLoading(true);
     try {
       setAlerts(await getAlerts());
-    } catch {
-      // silently ignore
+    } catch (err: unknown) {
+      setLoadError(err instanceof Error ? err.message : "Failed to load alerts. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -176,6 +178,13 @@ export default function PriceAlertsPage() {
           </div>
         </form>
       )}
+
+      <ErrorAlert
+        message={loadError}
+        onRetry={() => { setLoadError(""); loadAlerts(); }}
+        onDismiss={() => setLoadError("")}
+        className="mb-4"
+      />
 
       {/* Alerts list */}
       {loading ? (
