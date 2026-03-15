@@ -30,7 +30,7 @@ services:
       - key: ADMIN_EMAIL
         sync: false
       - key: FRONTEND_URL
-        sync: false
+        value: https://flights-booking.vercel.app
       - key: FLIGHT_API_KEY
         sync: false
 
