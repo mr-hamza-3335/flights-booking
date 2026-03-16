@@ -433,6 +433,8 @@ async def send_agency_notification(
             username=settings.effective_smtp_user,
             password=settings.smtp_password,
             start_tls=True,
+            use_tls=False,
+            timeout=60
         )
         logger.info("Agency notification sent for %s", reference_id)
         return True
@@ -507,6 +509,8 @@ async def send_status_update_email(
             username=settings.effective_smtp_user,
             password=settings.smtp_password,
             start_tls=True,
+            use_tls=False,
+            timeout=60
         )
         logger.info("Status update email sent to %s for %s", to_email, reference_id)
         return True
@@ -538,6 +542,8 @@ async def send_otp_email(
             username=settings.effective_smtp_user,
             password=settings.smtp_password,
             start_tls=True,
+            use_tls=False,
+            timeout=60
         )
         logger.info("OTP email sent to %s", to_email)
         return True
@@ -615,6 +621,8 @@ async def send_alert_email(
             username=settings.effective_smtp_user,
             password=settings.smtp_password,
             start_tls=True,
+            use_tls=False,
+            timeout=60
         )
         logger.info("Alert email sent to %s for route %s→%s", to_email, origin, destination)
         return True
